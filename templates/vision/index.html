@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Asistencia con detección facial</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #0b0e14;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      height: 100vh;
+    }
+    header {
+      background: #1b1e25;
+      padding: 10px 16px;
+      width: 100%;
+      text-align: center;
+    }
+    header a {
+      color: #00ffff;
+      margin: 0 10px;
+      text-decoration: none;
+      font-weight: bold;
+    }
+    h1 {
+      margin-top: 20px;
+    }
+    #panel {
+      display: flex;
+      gap: 20px;
+      background: #1b1e25;
+      padding: 10px 20px;
+      border-radius: 10px;
+      margin: 15px 0;
+      font-size: 1rem;
+      color: #00ffff;
+    }
+    img {
+      border: 2px solid #00ffff;
+      border-radius: 8px;
+      width: 640px;
+      max-width: 90%;
+      display: none; /* oculta al inicio */
+    }
+    form {
+      margin-top: 20px;
+      display: none; /* oculto al inicio */
+      gap: 10px;
+    }
+    input {
+      padding: 8px;
+      font-size: 1em;
+    }
+    button {
+      padding: 8px 14px;
+      background-color: #00ffff;
+      border: none;
+      cursor: pointer;
+      border-radius: 6px;
+      color: #000;
+      font-weight: bold;
+    }
+    button:hover {
+      filter: brightness(1.2);
+    }
+    #msg { margin-top: 10px; }
+  </style>
+</head>
+<body>
+
+  <!-- Encabezado con navegación -->
+  <header>
+    <a href="/">📷 Control de Asistencia</a>
+    <a href="/report/">📋 Ver Asistencias</a>
+  </header>
+
+  <h1>🎥 Control de Asistencia</h1>
+
+  <!-- Panel de estado -->
+  <div id="panel">
+    <span>📷 Cámara: <strong id="camStatus">Desactivada</strong></span>
+    <span>🧍 Rostros: <strong id="faceCount">0</strong></span>
+  </div>
+
+  <!-- Botón de encendido/apagado -->
+  <button id="toggleCam">Activar cámara</button>
+
+  <!-- Stream de video -->
+  <img id="stream" src="" alt="stream" />
+
+  <!-- Formulario de asistencia -->
+  <form id="form" method="post" action="/mark/">
+    <input type="text" name="name" id="name" placeholder="Ingresa tu nombre" required />
+    <button type="submit">Marcar asistencia</button>
+  </form>
+
+  <p id="msg"></p>
+
+  <script>
+    const stream = document.getElementById('stream');
+    const toggleCam = document.getElementById('toggleCam');
+    const form = document.getElementById('form');
+    const msg = document.getElementById('msg');
+    const camStatus = document.getElementById('camStatus');
+    const faceCount = document.getElementById('faceCount');
+
+    let cameraOn = false;
+
+   
+    toggleCam.addEventListener('click', async () => {
+      if (!cameraOn) {
+        await fetch('/toggle_camera/?action=on');
+        stream.src = '/video_feed/';
+        stream.style.display = 'block';
+        form.style.display = 'flex';
+        toggleCam.textContent = 'Desactivar cámara';
+        camStatus.textContent = 'Activa';
+        cameraOn = true;
+      } else {
+        await fetch('/toggle_camera/?action=off');
+        stream.src = ''; // detiene stream
+        stream.style.display = 'none';
+        form.style.display = 'none';
+        toggleCam.textContent = 'Activar cámara';
+        camStatus.textContent = 'Desactivada';
+        msg.textContent = '';
+        cameraOn = false;
+      }
+    });
+
+  
+    async function refreshStats() {
+      try {
+        const r = await fetch('/stats/');
+        const d = await r.json();
+        camStatus.textContent = d.camera === 'on' ? 'Activa' : 'Desactivada';
+        faceCount.textContent = d.faces ?? 0;
+      } catch (e) {}
+    }
+    setInterval(refreshStats, 800); // cada 0.8 seg actualiza panel
+
+    
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(form);
+      const r = await fetch('/mark/', { method: 'POST', body: formData });
+      const data = await r.json();
+      msg.textContent = data.msg;
+      msg.style.color = data.ok ? 'lightgreen' : 'salmon';
+      form.reset();
+    });
+  </script>
+</body>
+</html>

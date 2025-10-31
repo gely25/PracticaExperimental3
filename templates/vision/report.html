@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>📋 Reporte de Asistencias</title>
+  <style>
+    body {
+      background: #0b0e14;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      padding: 24px;
+    }
+    header {
+      background: #1b1e25;
+      padding: 10px 16px;
+      text-align: center;
+      border-radius: 6px;
+      margin-bottom: 20px;
+    }
+    header a {
+      color: #00ffff;
+      margin: 0 10px;
+      text-decoration: none;
+      font-weight: bold;
+    }
+    header a:hover {
+      text-decoration: underline;
+    }
+    h1 {
+      color: #00ffff;
+      text-align: left;
+      margin-bottom: 12px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #1b1e25;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    th, td {
+      padding: 12px 14px;
+      border-bottom: 1px solid #223;
+      text-align: center;
+    }
+    th {
+      background: #00ffff;
+      color: #000;
+      text-transform: uppercase;
+    }
+    tr:hover {
+      background-color: #10141f;
+    }
+    img {
+      width: 120px;
+      height: 80px;
+      object-fit: cover;
+      border-radius: 8px;
+      border: 2px solid #00ffff;
+      transition: transform 0.2s ease;
+    }
+    img:hover {
+      transform: scale(1.2);
+    }
+    .no-data {
+      text-align: center;
+      color: #888;
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <a href="/">📷 Control</a>
+    <a href="/report/">📋 Asistencias</a>
+  </header>
+
+  <h1>📋 Asistencias registradas</h1>
+
+  <table>
+    <tr>
+      <th>Nombre</th>
+      <th>Fecha/Hora</th>
+      <th>Rostros</th>
+      <th>Foto</th>
+    </tr>
+
+    {% for r in records %}
+      <tr>
+        <td>{{ r.name }}</td>
+        <td>{{ r.timestamp|date:"Y-m-d H:i:s" }}</td>
+        <td>{{ r.faces_detected }}</td>
+        <td>
+          {% if r.photo_path %}
+            <img src="{{ r.photo_path.url }}" alt="foto">
+          {% else %}
+            <span class="no-data">Sin foto</span>
+          {% endif %}
+        </td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="4" class="no-data">No hay asistencias registradas todavía.</td></tr>
+    {% endfor %}
+  </table>
+
+</body>
+</html>
